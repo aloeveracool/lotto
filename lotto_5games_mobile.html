@@ -1,0 +1,113 @@
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>로또 5게임 추출기 (모바일용)</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      background-color: #fafafa;
+      padding: 20px;
+      text-align: center;
+    }
+    h1 {
+      font-size: 24px;
+      margin-bottom: 20px;
+    }
+    input, button {
+      font-size: 16px;
+      margin: 10px 0;
+      padding: 10px;
+      width: 90%;
+      max-width: 300px;
+      box-sizing: border-box;
+    }
+    button {
+      background-color: #007BFF;
+      color: white;
+      border: none;
+      border-radius: 6px;
+    }
+    .game {
+      font-size: 18px;
+      margin: 10px 0;
+      color: #333;
+    }
+    #result {
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <h1>📱 모바일용 로또 5게임 추출기</h1>
+  <input type="text" id="includeNums" placeholder="포함 숫자 (예: 5,10)">
+  <input type="text" id="excludeNums" placeholder="제외 숫자 (예: 1,2,3)">
+  <button onclick="generateLotto()">번호 생성</button>
+  <button onclick="saveResults()">결과 저장</button>
+  <div id="result"></div>
+
+  <script>
+    function parseInput(value) {
+      return value.split(',').map(num => parseInt(num.trim())).filter(n => !isNaN(n) && n >= 1 && n <= 45);
+    }
+
+    function generateLotto() {
+      const include = parseInput(document.getElementById('includeNums').value);
+      const exclude = parseInput(document.getElementById('excludeNums').value);
+      const allNumbers = [];
+
+      for (let i = 1; i <= 45; i++) {
+        if (!include.includes(i) && !exclude.includes(i)) {
+          allNumbers.push(i);
+        }
+      }
+
+      if (include.length > 6) {
+        alert("포함 숫자는 6개를 넘을 수 없습니다.");
+        return;
+      }
+
+      if (allNumbers.length + include.length < 30) {
+        alert("포함/제외 설정으로 인해 숫자가 부족합니다.");
+        return;
+      }
+
+      const pool = allNumbers.sort(() => Math.random() - 0.5);
+      const resultDiv = document.getElementById('result');
+      resultDiv.innerHTML = '';
+      const games = [];
+
+      for (let i = 0; i < 5; i++) {
+        let game = [...include];
+        let index = 0;
+        while (game.length < 6 && index < pool.length) {
+          const num = pool[index++];
+          if (!game.includes(num)) game.push(num);
+        }
+        game.sort((a, b) => a - b);
+        games.push(game);
+        const div = document.createElement('div');
+        div.className = 'game';
+        div.textContent = `${i + 1}게임: ${game.join(', ')}`;
+        resultDiv.appendChild(div);
+      }
+
+      window.lottoResults = games.map((game, i) => `${i + 1}게임: ${game.join(', ')}`).join('\n');
+    }
+
+    function saveResults() {
+      if (!window.lottoResults) {
+        alert("먼저 번호를 생성해주세요.");
+        return;
+      }
+      const blob = new Blob([window.lottoResults], { type: 'text/plain' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'lotto_5games.txt';
+      a.click();
+    }
+  </script>
+</body>
+</html>
